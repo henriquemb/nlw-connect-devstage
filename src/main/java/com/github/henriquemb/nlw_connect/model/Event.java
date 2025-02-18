@@ -13,8 +13,6 @@ import java.time.LocalTime;
 @Table(name = "event")
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
