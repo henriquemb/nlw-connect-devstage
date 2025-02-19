@@ -1,5 +1,7 @@
 package com.github.henriquemb.nlw_connect.service;
 
+import com.github.henriquemb.nlw_connect.dto.SubscriptionRankingByUser;
+import com.github.henriquemb.nlw_connect.dto.SubscriptionRankingItem;
 import com.github.henriquemb.nlw_connect.dto.SubscriptionResponse;
 import com.github.henriquemb.nlw_connect.exception.EventNotFoundException;
 import com.github.henriquemb.nlw_connect.exception.SubscriptionConflictException;
@@ -12,6 +14,8 @@ import com.github.henriquemb.nlw_connect.repository.SubscriptionRepo;
 import com.github.henriquemb.nlw_connect.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class SubscriptionService {
@@ -72,5 +76,38 @@ public class SubscriptionService {
                 "/" +
                 result.getSubscriber().getId()
         );
+    }
+
+    public List<SubscriptionRankingItem> getCompleteRanking(String prettyName) {
+        Event event = eventRepo.findByPrettyName(prettyName);
+
+        if (event == null) {
+            throw new EventNotFoundException("Ranking do evento " + prettyName + " não existe");
+        }
+
+        return subscriptionRepo.generateRanking(event.getEventId());
+    }
+
+    public SubscriptionRankingByUser getRankingByUser(String prettyName, Integer userId) {
+        User user = userRepo.findById(userId).orElse(null);
+
+        if (user == null) {
+            throw new UserIndicatorNotFoundException("Usuário " + userId + " não existe");
+        }
+
+        List<SubscriptionRankingItem> ranking = getCompleteRanking(prettyName);
+
+        SubscriptionRankingItem item = ranking.stream()
+                .filter(r -> r.userId().equals(userId))
+                .findFirst()
+                .orElse(null);
+
+        if (item == null) {
+            throw new UserIndicatorNotFoundException("Não há inscrições com indicação para o usuário " + userId);
+        }
+
+        int position = ranking.indexOf(item) + 1;
+
+        return new SubscriptionRankingByUser(position, item);
     }
 }
