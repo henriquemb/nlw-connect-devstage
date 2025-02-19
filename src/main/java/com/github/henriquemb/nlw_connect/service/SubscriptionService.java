@@ -39,11 +39,17 @@ public class SubscriptionService {
             userResult = userRepo.save(user);
         }
 
-        User indicator = userRepo.findById(userId).orElse(null);
+        // Busca usuário indicador
+        User indicator = null;
 
-        if (indicator == null) {
-            throw new UserIndicatorNotFoundException("Usuário indicador " + userId + " não existe");
+        if (userId != null) {
+            indicator = userRepo.findById(userId).orElse(null);
+
+            if (indicator == null) {
+                throw new UserIndicatorNotFoundException("Usuário indicador " + userId + " não existe");
+            }
         }
+
 
         // Verificar inscrição
         Subscription subscriptionResult = subscriptionRepo.findByEventAndSubscriber(event, userResult);
